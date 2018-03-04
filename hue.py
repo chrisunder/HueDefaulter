@@ -7,6 +7,7 @@ import json
 default_temp = 366
 ideal_temp = 240  # Enter the desired colour temp here.
 bridge_ip = '192.168.86.22'  # Enter bridge IP here.
+room_name = 'Upstairs'
 
 b = Bridge(bridge_ip)
 
@@ -36,9 +37,11 @@ try:
 
         # Version 3: This checks each light invidiually then fixes the light before moving to the next one. It is joint second fastest and joint worst performance.
         for light in lights:
-            if light.colortemp == default_temp:
-                light.colortemp = ideal_temp
-                print('Fixing: ', light.light_id)
+            if room_name in light.name:
+                if light.on:
+                    if light.colortemp == default_temp:
+                        print('Fixing: ', light.name)
+                        light.colortemp = ideal_temp
 
         # Version 4: This doesn't check the lights at all, it just tells them all to go to the right temp over and over. It is the fastest and second best performance, but it means that all bulbs will be set to the same hue.
         # for light in lights:
