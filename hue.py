@@ -5,8 +5,8 @@ import time
 import json
 
 default_temp = 366
-ideal_temp = 275  # Enter the desired colour temp here.
-bridge_ip = '192.168.1.64'  # Enter bridge IP here.
+ideal_temp = 240  # Enter the desired colour temp here.
+bridge_ip = '192.168.86.22'  # Enter bridge IP here.
 
 b = Bridge(bridge_ip)
 
