@@ -3,51 +3,52 @@
 from phue import Bridge
 import time
 import json
+import win32serviceutil
+import win32service
+import win32event
+import servicemanager
+import socket
 
-default_temp = 366
-ideal_temp = 240  # Enter the desired colour temp here.
-bridge_ip = '192.168.86.22'  # Enter bridge IP here.
-room_name = 'Upstairs'
-
-b = Bridge(bridge_ip)
-
-# If running for the first time, press button on bridge and run with b.connect() uncommented
-b.connect()
-
-lights = b.get_light_objects()
-try:
-    while True:
-        # Version 1: This checks all the lights individually and then fixes them all in one go. It is joint second fastest and joint worst performance.
-        # lights_to_change = []
-        # for light in lights:
-        #     if light.colortemp == default_temp:
-        #         lights_to_change.append(light)
-        # if lights_to_change:
-        #     print('Fixing: ',lights_to_change)
-        #     for l in lights_to_change:
-        #         l.colortemp = ideal_temp
-
-        # Version 2: This gets the data for all the lights in one go, then checks which need to be fixed and fixes them in one go. It is the slowest but the best for performance.
-        # lights = json.dumps(b.get_api().get('lights'))
-        # lights = json.loads(lights)
-        # lights_to_change = [int(d) for d in lights if lights[d]['state']['ct'] == default_temp]
-        # if lights_to_change:
-        #     b.set_light(lights_to_change, 'ct', ideal_temp)
-        #     print('Fixing: ',lights_to_change)
-
-        # Version 3: This checks each light invidiually then fixes the light before moving to the next one. It is joint second fastest and joint worst performance.
-        for light in lights:
-            if room_name in str(light.name):
-                if light.on:
-                    if light.colortemp == default_temp:
-                        print('Fixing: ', light.name)
-                        light.colortemp = ideal_temp
-
-        # Version 4: This doesn't check the lights at all, it just tells them all to go to the right temp over and over. It is the fastest and second best performance, but it means that all bulbs will be set to the same hue.
-        # for light in lights:
-        #     light.colortemp = ideal_temp
+class AppServerSvc (win32serviceutil.ServiceFramework):
+    _svc_name_ = "HueDefaulter"
+    _svc_display_name_ = "Hue Defaulter"
 
 
-        time.sleep(0.25)  # Change this to whatever you like. Higher number improves performance but slows down the fixing
-except KeyboardInterrupt:
-    print('interrupted!')
+    def __init__(self,args):
+        win32serviceutil.ServiceFramework.__init__(self,args)
+        self.hWaitStop = win32event.CreateEvent(None,0,0,None)
+        socket.setdefaulttimeout(60)
+
+    def SvcStop(self):
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        win32event.SetEvent(self.hWaitStop)
+
+    def SvcDoRun(self):
+        servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
+                          servicemanager.PYS_SERVICE_STARTED,
+                          (self._svc_name_,''))
+        self.main()
+
+    def main(self):
+        default_temp = 366
+        ideal_temp = 240  # Enter the desired colour temp here.
+        bridge_ip = '192.168.86.22'  # Enter bridge IP here.
+        room_name = 'Upstairs'
+        b = Bridge(bridge_ip)
+
+        # If running for the first time, press button on bridge and run with b.connect() uncommented
+        b.connect()
+
+        lights = b.get_light_objects()
+        while True:
+            for light in lights:
+                if room_name in str(light.name):
+                    if light.on:
+                        if light.colortemp == default_temp:
+                            print('Fixing: ', light.name)
+                            light.colortemp = ideal_temp
+            time.sleep(0.25)
+        
+
+if __name__ == '__main__':
+    win32serviceutil.HandleCommandLine(AppServerSvc)
