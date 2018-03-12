@@ -37,7 +37,7 @@ try:
 
         # Version 3: This checks each light invidiually then fixes the light before moving to the next one. It is joint second fastest and joint worst performance.
         for light in lights:
-            if room_name in light.name:
+            if room_name in str(light.name):
                 if light.on:
                     if light.colortemp == default_temp:
                         print('Fixing: ', light.name)
