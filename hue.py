@@ -48,6 +48,6 @@ try:
         #     light.colortemp = ideal_temp
 
 
-        time.sleep(1)  # Change this to whatever you like. Higher number improves performance but slows down the fixing
+        time.sleep(0.25)  # Change this to whatever you like. Higher number improves performance but slows down the fixing
 except KeyboardInterrupt:
     print('interrupted!')
