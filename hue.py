@@ -47,7 +47,7 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
                         if light.colortemp == default_temp:
                             print('Fixing: ', light.name)
                             light.colortemp = ideal_temp
-            time.sleep(0.25)
+            time.sleep(0.5)
         
 
 if __name__ == '__main__':
